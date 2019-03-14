@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace SE.Redis.Benchmark
+namespace Redis_Benchmark
 {
   
     class Program
@@ -17,7 +17,7 @@ namespace SE.Redis.Benchmark
 
         // Latency
         static long _totalLatencyInTicks;
-        static ConcurrentBag<double> latencyBag = new ConcurrentBag<double>();
+        static ConcurrentBag<double> latencyBag;
 
         // Requests
         static long _totalRequests;
@@ -28,7 +28,6 @@ namespace SE.Redis.Benchmark
         static long concurrentOps;
         static readonly string key = "test";
         const int keySizeBytes = 1024;
-       
 
         static void SetGlobals()
         {
@@ -70,7 +69,7 @@ namespace SE.Redis.Benchmark
             {
                 CommandMap = CommandMap.Create(new HashSet<string>(new string[] { "SUBSCRIBE" }), false),
                 Ssl = false,
-                ResponseTimeout = Int32.MaxValue,
+                ResponseTimeout = 1,
                 Password = password,
                 AbortOnConnectFail = true
             };
@@ -80,8 +79,8 @@ namespace SE.Redis.Benchmark
             ConnectionMultiplexer cm = ConnectionMultiplexer.Connect(config);
             IDatabase redis = cm.GetDatabase();
             redis.StringSet(key, value);
-            redis.Execute("FLUSHALL");
 
+            // Initialize CSV to store results and write header values
             StringBuilder csv = new StringBuilder();
             csv.AppendLine($"Host: {host}");
             csv.AppendLine($"Start time: {startTime}");
@@ -89,8 +88,11 @@ namespace SE.Redis.Benchmark
             // columns
             csv.AppendLine("Median Latency (ms), Avg Latency (ms), Throughput (bytes/sec)");
 
+            CPUAndMemoryLogger cpuMemLogger = new CPUAndMemoryLogger();
+
             for (int i = 0; i < numTrials; i++)
             {
+                latencyBag = new ConcurrentBag<double>();
 
                 Console.WriteLine($"Running trial {i + 1}");
                 // Start the request process
@@ -108,19 +110,22 @@ namespace SE.Redis.Benchmark
                     avgLatency += lat;
                 }
                 avgLatency /= _totalRequests;
-                double throughput = Math.Round((_totalRequests * keySizeBytes) / (DateTime.Now - startTime).TotalSeconds, 2);
+                double throughputMB = Math.Round((_totalRequests * keySizeBytes) / (DateTime.Now - startTime).TotalSeconds, 2);
 
                 Console.WriteLine("Median Latency: {0} ms", sortedLatency[median]);
                 Console.WriteLine("Average Latency: {0} ms", avgLatency);
-                Console.WriteLine("Throughput: {0} bytes/s", throughput);
+                Console.WriteLine("Throughput: {0} bytes/s\n", throughputMB);
 
-                csv.AppendLine($"{sortedLatency[median]}, {avgLatency}, {throughput}");
+                csv.AppendLine($"{sortedLatency[median]}, {avgLatency}, {throughputMB}");
             }
+
+            // line to seperate the CPU and Memory stats
+            csv.AppendLine();
+            csv.AppendLine(cpuMemLogger.GetCSV());
 
             // Write results to csv
             File.WriteAllText(fileName, csv.ToString());
 
-            Console.ReadKey();
             return;
         }
         
@@ -148,6 +153,5 @@ namespace SE.Redis.Benchmark
                 DoCalls(redis);
             });
         }
-        
     }
 }
