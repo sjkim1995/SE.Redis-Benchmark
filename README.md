@@ -14,7 +14,7 @@ So, for example, if I wanted to run three 15-min trials on one of my caches host
 ./SE.Redis-Benchmark.exe someAzureCacheName.redis.cache.windows.net ########### 50000 900 3 TestResults50k.csv
 ```
 
-The output of this command is wrriten to TestResults50k.csv, the ```<outputFileName>``` supplied as the final argument. Note that you don't need to create this file before running the benchmark beforehand, but if you do, be aware that the contents of the file will be overwritten by running Redis-Benchmark.exe.
+The output of this command is wrriten to ```TestResults50k.csv```, the ```<outputFileName>``` supplied as the final argument. Note that you don't need to create this file before running the benchmark beforehand, but if you do, be aware that the contents of the file will be overwritten by running Redis-Benchmark.exe.
 
 Note that there aren't default values for any of these parameters, so you faiking to supply a param will result in an Exception being thrown.
 
