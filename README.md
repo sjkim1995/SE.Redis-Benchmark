@@ -6,12 +6,12 @@ Pull requests, suggestions, questions, etc. welcome.
 # Usage :
 Build (already done, but if you wanted to make changes to the benchmarking source files you'd need this step) and navigate to `\bin\Release` from the root directory. Run: 
 ```
-./Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numberOfTrials> <outputFileName>
+./SE.Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numberOfTrials> <outputFileName>
 ```
 So, for example, if I wanted to run three 15-min trials on one of my caches hosted on Azure cloud at 50k ops, I'd run:
 
 ```
-./Redis-Benchmark.exe someAzureCacheName.redis.cache.windows.net ########### 50000 900 3 TestResults50k.csv
+./SE.Redis-Benchmark.exe someAzureCacheName.redis.cache.windows.net ########### 50000 900 3 TestResults50k.csv
 ```
 
 The output of this command is wrriten to TestResults50k.csv, the ```<outputFileName>``` supplied as the final argument. Note that you don't need to create this file before running the benchmark beforehand, but if you do, be aware that the contents of the file will be overwritten by running Redis-Benchmark.exe.
