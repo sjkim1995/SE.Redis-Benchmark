@@ -24,3 +24,4 @@ C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.c
 C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.csproj.CopyComplete
 C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.exe
 C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.pdb
+C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.csprojAssemblyReference.cache

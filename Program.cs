@@ -47,7 +47,7 @@ namespace Redis_Benchmark
 
             if (args.Length != 6)
             {
-                Console.WriteLine("/Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numberOfTrials> <outputFileName>");
+                Console.WriteLine("\nUsage: ./SE.Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numberOfTrials> <outputFileName>");
                 throw new ArgumentException("Incorrect number of arguments.");
             }
 
@@ -61,7 +61,7 @@ namespace Redis_Benchmark
 
             if (parallelOps < 1 || trialTimeInSecs < 1 || numTrials < 1)
             {
-                Console.WriteLine("/Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numberOfTrials> <outputFileName>");
+                Console.WriteLine("\nUsage ./Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numberOfTrials> <outputFileName>");
                 throw new ArgumentException("parallelOps, timePerTrialInSeconds, and numberOfTrials must all be non-negative!");
             }
 
