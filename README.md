@@ -1,10 +1,12 @@
 # StackExchange.Redis Benchmark Tool
 Console app for benchmarking StackExchange.Redis client performance. Outputs latency, throughput, memory, and CPU statistics to a CSV file.
 
+The app takes in a number of ops '''X''' to execute in parallel and a duration '''Y''' for execution. It calls '''db.StringGetAsync''' '''X''' times in parallel on a dummy key inserted into the cache at the start of the trial  for '''Y''' seconds. When this finished, the app calculates and writes the average latency, median latency, average throughput, and CPU and memory usage through time to a CSV file.
+
 Pull requests, suggestions, questions, etc. welcome. 
 
 # Usage :
-Build (already done, but if you wanted to make changes to the benchmarking source files you'd need this step) and navigate to `\bin\Release` from the root directory. Run: 
+Build (most recent build already pushed) and navigate to `\bin\Release` from the root directory. Run: 
 ```
 ./SE.Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numberOfTrials> <outputFileName>
 ```
