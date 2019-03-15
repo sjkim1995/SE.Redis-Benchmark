@@ -6,7 +6,7 @@ Current metrics supported:
 * Average Latency
 * Median Latency
 * Average Throughput
-* CPU percentage through time
+* CPU Percentage through time
 * Process Memory Usage (working set) through time
 
 The app takes in a number of ops ```X``` to execute in parallel and a duration ```Y``` for execution. It calls ```db.StringGetAsync``` ```X``` times in parallel on a dummy key inserted into the cache at the start of the trial  for ```Y``` seconds. When this finishes, the app calculates and writes the average latency, median latency, average throughput, and CPU and memory usage through time to a CSV file.
