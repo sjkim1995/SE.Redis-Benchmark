@@ -1,4 +1,4 @@
-# redis-benchmark
+# StackExchange.Redis Benchmark Tool
 Console app for benchmarking StackExchange.Redis client performance. Outputs latency, throughput, memory, and CPU statistics to a CSV file. 
 Pull requests, suggestions, etc. welcome. 
 
