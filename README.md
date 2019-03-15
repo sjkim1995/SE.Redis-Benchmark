@@ -16,8 +16,8 @@ So, for example, if I wanted to run three 15-min trials on one of my caches host
 
 The output of this command is wrriten to ```TestResults50k.csv```, the ```<outputFileName>``` supplied as the final argument. Note that you don't need to create this file before running the benchmark beforehand, but if you do, be aware that the contents of the file will be overwritten by running SE.Redis-Benchmark.exe.
 
-Note that there aren't default values for any of these parameters, so you faiking to supply a param will result in an Exception being thrown.
+Note that there aren't default values for any of these parameters, so failing to supply a param will result in an ArgumentException.
 
 # Best Practices :
-If you are benchmarking an Azure Redis cache, I recommend running this on a client VM in the same region as the one your cache is in. This reduces network noise and other biases that would be introduced by running Redis-Benchmark on your local machine. 
+If you are benchmarking a cache hosted on Azure Cloud, I recommend running this on a client VM running in the same region as the one your cache is in. This reduces network noise and other biases that would be introduced by running Redis-Benchmark on your local machine. 
 You can read more about best practices and optimal settings/parameters for benchmarking Azure caches [here](https://gist.github.com/JonCole/925630df72be1351b21440625ff2671f#performance-testing).
