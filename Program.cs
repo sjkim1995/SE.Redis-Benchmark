@@ -137,7 +137,7 @@ namespace Redis_Benchmark
                 }
                 avgLatency /= numRequests;
 
-                double throughputMB = Math.Round((numRequests * keySizeBytes) / elapsed * MB, 2);
+                double throughputMB = Math.Round((numRequests * keySizeBytes) / elapsed, 2) / MB;
                 double rps = Math.Round(numRequests / elapsed, 1);
 
                 Console.WriteLine("Median Latency: {0} ms", medianLatency);
