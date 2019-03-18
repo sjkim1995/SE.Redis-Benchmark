@@ -30,7 +30,7 @@ namespace Redis_Benchmark
         static void PrintTestParams()
         {
             Console.WriteLine("Host:\t\t\t{0}", host);
-            Console.WriteLine("PendingRequests:\t{0}", parallelOps);
+            Console.WriteLine("Parallel Requests:\t{0}", parallelOps);
             Console.WriteLine("Cache Item Size:\t{0} bytes", keySizeBytes);
             Console.WriteLine("Time per trial:\t\t{0}s", trialTimeInSecs);
             Console.WriteLine("# Trials:\t\t{0}\n", numTrials);
@@ -59,10 +59,10 @@ namespace Redis_Benchmark
             numTrials = Int32.Parse(args[4]);
             string fileName = args[5];
 
-            if (parallelOps < 1 || trialTimeInSecs < 1 || numTrials < 1)
+            if (parallelOps <= 0 || trialTimeInSecs <= 0 || numTrials <= 0)
             {
                 Console.WriteLine("\nUsage ./Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numberOfTrials> <outputFileName>");
-                throw new ArgumentException("parallelOps, timePerTrialInSeconds, and numberOfTrials must all be non-negative!");
+                throw new ArgumentException("parallelOps, timePerTrialInSeconds, and numberOfTrials must all be >= 0!");
             }
 
             PrintTestParams();
@@ -82,7 +82,7 @@ namespace Redis_Benchmark
             csv.AppendLine("Host, Start Time, Trial Time, # Trials");
             csv.AppendLine($"{host}, {DateTime.Now}, {trialTimeInSecs}, {numTrials}");
             csv.AppendLine();
-            csv.AppendLine("Median Latency (ms), Avg Latency (ms), Throughput (bytes/sec)"); // Column headers
+            csv.AppendLine("Median Latency (ms), Avg Latency (ms), Throughput (bytes/s), Requests per sec"); // Column headers
 
             // Get redis instance and flush database
             ConnectionMultiplexer cm = ConnectionMultiplexer.Connect(config);
@@ -100,22 +100,25 @@ namespace Redis_Benchmark
             {
                 Console.WriteLine($"*RUNNING TRIAL {i + 1}");
 
-                // reset the latency buffer, request count, and start time for the new trial
+                // Reset the latency buffer, request count, and start time for the new trial
                 latencyBag = new ConcurrentBag<double>();
-                Interlocked.Exchange(ref _totalRequests, 0);
                 startTime = DateTime.Now;
 
-                // Start making concurrent requests
+                // Start parallel requests
                 var cancel = new CancellationTokenSource();
                 var requestTasks = DoRequests(redis, cancel.Token);
 
                 await Task.Delay(TimeSpan.FromSeconds(trialTimeInSecs));
 
-                // to cancel
+                // Stop threads from making further calls
                 cancel.Cancel();
 
-                // finish current calls
+                // Finish current calls
                 await requestTasks;
+
+                // Read the total number of requests made and set the counter back to zero
+                double numRequests = Interlocked.Exchange(ref _totalRequests, 0);
+                double elapsed = (DateTime.Now - startTime).TotalSeconds;
 
                 double[] sortedLatency = latencyBag.ToArray();
                 Array.Sort(sortedLatency);
@@ -127,13 +130,15 @@ namespace Redis_Benchmark
                     avgLatency += lat;
                 }
                 avgLatency /= _totalRequests;
-                double throughputMB = Math.Round((_totalRequests * keySizeBytes) / (DateTime.Now - startTime).TotalSeconds, 2) / (1024 * 1024);
+                double throughputMB = Math.Round((_totalRequests * keySizeBytes) / elapsed, 2) / (1024 * 1024);
+                double rps = numRequests / elapsed;
 
                 Console.WriteLine("Median Latency: {0} ms", medianLatency);
                 Console.WriteLine("Average Latency: {0} ms", avgLatency);
-                Console.WriteLine("Throughput: {0} MB/s\n", throughputMB);
+                Console.WriteLine("Throughput: {0} MB/s", throughputMB);
+                Console.WriteLine("RPS: {0}\n", rps);
 
-                csv.AppendLine($"{medianLatency}, {avgLatency}, {throughputMB}");
+                csv.AppendLine($"{medianLatency}, {avgLatency}, {throughputMB}, {rps}");
             }
 
             // line to seperate the CPU and Memory stats
@@ -165,9 +170,9 @@ namespace Redis_Benchmark
             {
                 sw.Restart();
                 await redis.StringGetAsync(key);
-                var elapsedMs = sw.ElapsedMilliseconds;
+                var elapsedMS = sw.ElapsedMilliseconds;
                 Interlocked.Increment(ref _totalRequests);
-                latencyBag.Add(elapsedMs);
+                latencyBag.Add(elapsedMS);
             }
 
             return;

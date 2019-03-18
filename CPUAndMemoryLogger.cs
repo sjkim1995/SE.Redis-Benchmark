@@ -17,7 +17,7 @@ namespace Redis_Benchmark
         {
             _logFrequency = logFrequency;
             csv = new StringBuilder();
-            csv.AppendLine("CPU %, Memory (MB)");
+            csv.AppendLine("Timestamp, CPU %, Memory (MB)");
             StartLogging();
         }
         
@@ -37,7 +37,7 @@ namespace Redis_Benchmark
                 string CPU = PerfCounterHelper.GetSystemCPU();
                 Process curProcess = Process.GetCurrentProcess();
                 long procMemoryMB = curProcess.WorkingSet64 >> 20;
-                csv.AppendLine(String.Format("{0}, {1}", CPU, procMemoryMB));
+                csv.AppendLine(String.Format("{0}, {1}, {2}", DateTime.Now, CPU, procMemoryMB));
             }
         }
 
