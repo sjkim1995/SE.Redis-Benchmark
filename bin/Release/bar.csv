@@ -1,16 +1,15 @@
 Host, Start Time, Trial Time, # Trials
-p4benchmark.redis.cache.windows.net, 3/18/2019 11:17:22 AM, 15, 1
+p4benchmark.redis.cache.windows.net, 3/18/2019 11:28:03 AM, 15, 1
 
-Median Latency (ms), Avg Latency (ms), Throughput (bytes/sec)
-166, 349.07974, 2.77064167022705
+Median Latency (ms), Avg Latency (ms), Throughput (bytes/s), Requests per sec
+832, ∞, 0, 8939.47835467349
 
 Timestamp, CPU %, Memory (MB)
-3/18/2019 11:17:25 AM, 100, 39
-3/18/2019 11:17:27 AM, 16.7, 58
-3/18/2019 11:17:29 AM, 9.05, 60
-3/18/2019 11:17:31 AM, 15.73, 72
-3/18/2019 11:17:33 AM, 13.78, 83
-3/18/2019 11:17:35 AM, 10.82, 86
-3/18/2019 11:17:37 AM, 16.37, 86
-3/18/2019 11:17:39 AM, 14.62, 86
+3/18/2019 11:28:07 AM, 100, 59
+3/18/2019 11:28:09 AM, 24.15, 66
+3/18/2019 11:28:11 AM, 26.38, 75
+3/18/2019 11:28:13 AM, 36.86, 83
+3/18/2019 11:28:15 AM, 41.04, 93
+3/18/2019 11:28:17 AM, 45.15, 98
+3/18/2019 11:28:19 AM, 18.02, 100
 

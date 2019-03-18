@@ -27,6 +27,9 @@ namespace Redis_Benchmark
         const int keySizeBytes = 1024;
         static long parallelOps;
 
+        const int KB = 1024;
+        const int MB = KB * KB;
+
         static void PrintTestParams()
         {
             Console.WriteLine("Host:\t\t\t{0}", host);
@@ -116,22 +119,26 @@ namespace Redis_Benchmark
                 // Finish current calls
                 await requestTasks;
 
-                // Read the total number of requests made and set the counter back to zero
+                // Read the total number of requests and set the counter back to zero
                 double numRequests = Interlocked.Exchange(ref _totalRequests, 0);
                 double elapsed = (DateTime.Now - startTime).TotalSeconds;
 
+
+                // Calculate latency metrics
                 double[] sortedLatency = latencyBag.ToArray();
                 Array.Sort(sortedLatency);
 
                 double avgLatency = 0;
                 double medianLatency = sortedLatency[sortedLatency.Length / 2];
+
                 foreach (var lat in sortedLatency)
                 {
                     avgLatency += lat;
                 }
-                avgLatency /= _totalRequests;
-                double throughputMB = Math.Round((_totalRequests * keySizeBytes) / elapsed, 2) / (1024 * 1024);
-                double rps = numRequests / elapsed;
+                avgLatency /= numRequests;
+
+                double throughputMB = Math.Round((numRequests * keySizeBytes) / elapsed * MB, 2);
+                double rps = Math.Round(numRequests / elapsed, 1);
 
                 Console.WriteLine("Median Latency: {0} ms", medianLatency);
                 Console.WriteLine("Average Latency: {0} ms", avgLatency);

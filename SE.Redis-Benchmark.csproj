@@ -84,7 +84,6 @@
     <Compile Include="PerfCounterHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimpleRedisClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
