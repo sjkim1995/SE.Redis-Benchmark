@@ -6,6 +6,7 @@ Current metrics supported:
 * Average Latency
 * Median Latency
 * Throughput
+* Requests per second
 * CPU Percentage 
 * Process Memory Usage (working set) 
 
