@@ -10,7 +10,7 @@ Current metrics supported:
 * CPU Percentage 
 * Process Memory Usage (working set) 
 
-The app takes in a number of ops ```X``` to execute in parallel and a duration ```Y``` for execution. More concretely, it calls ```db.StringGetAsync``` ```X``` times in parallel for ```Y``` seconds on a key inserted into the cache at the start of the trial. When this finishes, the app calculates and writes the average latency, median latency, throughput, and CPU and memory usage to a specified CSV file.
+The app takes in a number of ops ```X``` to execute in parallel and a duration ```Y``` for execution. More concretely, it calls ```db.StringGetAsync``` ```X``` times in parallel for ```Y``` seconds on a key inserted into the cache at the start of the trial. When this finishes, the above metrics are calculated and written to a specified CSV file (see below).
 
 # Usage :
 Build (most recent build already pushed) and navigate to `\bin\Release` from the root directory. Run: 
