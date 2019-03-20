@@ -17,6 +17,7 @@ namespace Redis_Benchmark
         static DateTime startTime;
         static double trialTimeInSecs;
         static int numTrials;
+        static bool includeAzStats = false;
 
         static ConcurrentBag<double> latencyBag;
         static long _totalLatency;
@@ -52,10 +53,10 @@ namespace Redis_Benchmark
 
             ThreadPool.SetMinThreads(200, 200);
 
-            if (args.Length != 6)
+            if (args.Length < 6)
             {
                 Console.WriteLine("\nUsage: ./SE.Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numTrials> <outputFileName>");
-                throw new ArgumentException("Incorrect number of arguments.");
+                throw new ArgumentException("Insufficient args.");
             }
 
             // Command-line args
@@ -66,6 +67,13 @@ namespace Redis_Benchmark
             numTrials = Int32.Parse(args[4]);
             string outputFileName = args[5];
 
+            // Secret arg
+            if (args.Length == 7)
+            {
+                includeAzStats = Boolean.Parse(args[6]);
+            }
+
+            // Validate arg values
             if (parallelOps <= 0 || trialTimeInSecs <= 0 || numTrials <= 0)
             {
                 Console.WriteLine("\nUsage ./Redis-Benchmark.exe <hostname> <password> <parallelOps> <timePerTrialInSeconds> <numTrials> <outputFileName>");
@@ -77,11 +85,12 @@ namespace Redis_Benchmark
             // Configuration Options
             ConfigurationOptions config = new ConfigurationOptions
             {
-                CommandMap = CommandMap.Create(new HashSet<string>(new string[] { "SUBSCRIBE" }), false),
                 Ssl = false,
                 Password = password,
                 AbortOnConnectFail = true,
-                IncludeAzStats = true
+                AsyncTimeout = Int32.MaxValue,
+                SyncTimeout = Int32.MaxValue,
+                IncludeAzStats = includeAzStats
             };
             config.EndPoints.Add(host);
        
@@ -102,10 +111,11 @@ namespace Redis_Benchmark
             (new Random()).NextBytes(value);
             redis.StringSet(key, value);
 
-            CPUAndMemoryLogger cpuMemLogger = new CPUAndMemoryLogger(); // Start logging CPU and Memory on a separate thread
+            CPUAndMemoryLogger cpuMemLogger = new CPUAndMemoryLogger(logToConsole: true); // Start logging CPU and Memory on a separate thread
 
             for (int i = 0; i < numTrials; i++)
             {
+                cpuMemLogger.Reset();
                 Console.WriteLine($"*RUNNING TRIAL {i + 1}");
 
                 // Reset the latency buffer, request count, and start time for the new trial
@@ -124,6 +134,9 @@ namespace Redis_Benchmark
 
                 // Finish current calls
                 await requestTasks;
+
+                // Stop logging CPU and memory usage
+                cpuMemLogger.Dispose();
 
                 // Read totalRequests and totalLatency and set the counters back to zero
                 double totalRequests = Interlocked.Exchange(ref _totalRequests, 0);
@@ -173,6 +186,10 @@ namespace Redis_Benchmark
         {
             var sw = new Stopwatch();
 
+            // counters for total latency and total requests for the thread
+            long tlatency = 0;
+            long trequests = 0;
+
             while (!t.IsCancellationRequested)
             {
                 await Task.Delay(1000); // on average, there should only be X requests executing per second (X = parallelOps)
@@ -182,9 +199,12 @@ namespace Redis_Benchmark
                 var elapsedMS = sw.ElapsedMilliseconds;
 
                 latencyBag.Add(elapsedMS);
-                Interlocked.Add(ref _totalLatency, elapsedMS);
-                Interlocked.Increment(ref _totalRequests);
+                tlatency += elapsedMS;
+                trequests++;
             }
+
+            Interlocked.Add(ref _totalLatency, tlatency);
+            Interlocked.Add(ref _totalRequests, trequests);
 
             return;
         }
