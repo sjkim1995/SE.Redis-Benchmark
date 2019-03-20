@@ -786,6 +786,11 @@
             Indicates whether admin operations should be allowed
             </summary>
         </member>
+        <member name="P:StackExchange.Redis.ConfigurationOptions.IncludeAzStats">
+            <summary>
+            Indicates whether the Azure Stats Engine should be used to collect stats on the client machine
+            </summary>
+        </member>
         <member name="P:StackExchange.Redis.ConfigurationOptions.AsyncTimeout">
             <summary>
             Specifies the time in milliseconds that the system should allow for asynchronous operations (defaults to SyncTimeout)
@@ -1414,6 +1419,11 @@
             based on ambient context, or returning null to not profile
             </summary>
             <param name="profilingSessionProvider">The session provider to register.</param>
+        </member>
+        <member name="P:StackExchange.Redis.ConnectionMultiplexer.StatsEngine">
+            <summary>
+            Statistics logger for client-side metrics such as Bandwidth, CPU, PageFaults, etc.
+            </summary>
         </member>
         <member name="T:StackExchange.Redis.EndPointCollection">
             <summary>

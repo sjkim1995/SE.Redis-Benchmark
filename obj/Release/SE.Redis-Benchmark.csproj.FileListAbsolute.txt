@@ -25,3 +25,8 @@ C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.c
 C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.exe
 C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.pdb
 C:\Users\seki.REDMOND\Developer\Redis-Benchmark\obj\Release\SE.Redis-Benchmark.csprojAssemblyReference.cache
+C:\Users\seki.REDMOND\Developer\Redis-Benchmark\bin\Release\StatsEngine.dll
+C:\Users\seki.REDMOND\Developer\Redis-Benchmark\bin\Release\StatsEngine.Persistence.dll
+C:\Users\seki.REDMOND\Developer\Redis-Benchmark\bin\Release\StatsEngine.Logging.dll
+C:\Users\seki.REDMOND\Developer\Redis-Benchmark\bin\Release\StatsEngine.Analysis.dll
+C:\Users\seki.REDMOND\Developer\Redis-Benchmark\bin\Release\StatsEngine.Shared.dll
