@@ -14,12 +14,12 @@ The app takes in a number of ops ```X``` to execute in parallel and a duration `
 
 # Usage :
 
-| Param         | Meaning       |
-| ------------- |:-------------:| 
-| numConnections| # of IDatabase connections to instantiate | 
-| hostname      | Host name of the redis cache instance      |   
-| password | Password for the cache      |
-| parallelOps | Max # of ops to execute in parallel      |
+| Param         | Meaning     |
+| ------------- |-------------| 
+| numConnections | # of IDatabase connections to instantiate | 
+| hostname      | Host name of the redis cache instance |   
+| password | Password for the cache |
+| parallelOps | Max # of ops to execute in parallel |
 | trialDurationInSecs | Duration of the trial in seconds |
 | outputFileName | Name of the output file to write the results of the benchmark to (e.g. results.csv) |
   
