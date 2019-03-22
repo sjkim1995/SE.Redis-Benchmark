@@ -67,9 +67,9 @@ namespace Redis_Benchmark
             string outputFileName = args[5];
 
             // Optional AzStatsEngine arg
-            if (args.Length == 6)
+            if (args.Length == 7)
             {
-                includeAzStats = Boolean.Parse(args[5]);
+                includeAzStats = Boolean.Parse(args[6]);
             }
 
             // Validate arg values
