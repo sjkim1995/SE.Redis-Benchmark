@@ -1,0 +1,11 @@
+Host, Start Time, Trial Time
+p4benchmark.redis.cache.windows.net, 3/22/2019 3:19:52 PM, 10
+
+Median Latency (ms), Avg Latency (ms), Throughput (bytes/s), Requests per sec
+154, 50552756, 24.92, 25517.14
+
+Timestamp, CPU %, Memory (MB)
+3/22/2019 3:20:04 PM, 100, 106
+3/22/2019 3:20:07 PM, 97.32, 118
+3/22/2019 3:20:10 PM, 86.97, 121
+
