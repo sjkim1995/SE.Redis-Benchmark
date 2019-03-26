@@ -21,6 +21,8 @@ namespace Redis_Benchmark
         static ConcurrentBag<double> latencyBag;
         static long _totalLatency;
         static long _totalRequests;
+        static long _minLatency = long.MaxValue;
+        static long _maxLatency = long.MinValue;
 
         // Request details
         static string host;
@@ -45,11 +47,6 @@ namespace Redis_Benchmark
 
         async static Task MainAsync(string[] args)
         {
-            if (!ExecutionContext.IsFlowSuppressed())
-            {
-                ExecutionContext.SuppressFlow();
-            }
-
             // Increase min thread count
             ThreadPool.SetMinThreads(200, 200);
 
@@ -88,9 +85,8 @@ namespace Redis_Benchmark
                 Ssl = false,
                 Password = password,
                 AbortOnConnectFail = true,
-                AsyncTimeout = Int32.MaxValue,
                 SyncTimeout = Int32.MaxValue,
-                IncludeAzStats = includeAzStats
+                IncludeAzStats = includeAzStats,
             };
             config.EndPoints.Add(host);
 
@@ -99,7 +95,7 @@ namespace Redis_Benchmark
             csv.AppendLine("Host, Start Time, Trial Time");
             csv.AppendLine($"{host}, {DateTime.Now}, {trialTimeInSecs}");
             csv.AppendLine();
-            csv.AppendLine("Median Latency (ms), Avg Latency (ms), Throughput (bytes/s), Requests per sec"); // Column headers
+            csv.AppendLine("Avg Latency (ms), Min Latency (ms), Max Latency (ms), Throughput (MB/s), RPS"); // Column headers
 
             IDatabase[] db = new IDatabase[maxConnections];
 
@@ -125,47 +121,31 @@ namespace Redis_Benchmark
 
             // Start parallel requests
             var cancel = new CancellationTokenSource();
-            var requestTasks = DoRequests(db, cancel.Token);
+            DoRequests(db, cancel.Token);
 
             await Task.Delay(TimeSpan.FromSeconds(trialTimeInSecs));
-
-            Console.WriteLine("Before cancel");
 
             // Stop threads from making further calls
             cancel.Cancel();
 
-            Console.WriteLine("after cancel");
-
-            // Finish current calls
-            await requestTasks;
-
-            Console.WriteLine("Disposing CPU and Memory Logger");
-
             // Stop logging CPU and memory usage
             cpuMemLogger.Dispose();
             double elapsed = (DateTime.Now - startTime).TotalSeconds;
-
-            // Latency Metrics
-            double[] sortedLatency = latencyBag.ToArray();
-            Array.Sort(sortedLatency);
-
-            double medianLatency = 0;
-            if (false)
-            {
-                medianLatency = sortedLatency[sortedLatency.Length / 2];
-            }
             double avgLatency = Math.Round((double) _totalLatency / _totalRequests, 2);
+            long minLatency = Interlocked.Read(ref _minLatency);
+            long maxLatency = Interlocked.Read(ref _maxLatency);
 
             // Throughput Metrics
             double throughputMB = Math.Round((_totalRequests * keySizeBytes) / elapsed / MB, 2);
             double rps = Math.Round(_totalRequests / elapsed, 2);
 
-            Console.WriteLine("Median Latency: {0} ms", medianLatency);
             Console.WriteLine("Average Latency: {0} ms", avgLatency);
+            Console.WriteLine("Min Latency: {0} ms", minLatency);
+            Console.WriteLine("Max Latency: {0} ms", maxLatency);
             Console.WriteLine("Throughput: {0} MB/s", throughputMB);
             Console.WriteLine("RPS: {0}\n", rps);
 
-            csv.AppendLine($"{medianLatency}, {_totalLatency}, {throughputMB}, {rps}");
+            csv.AppendLine($"{avgLatency}, {minLatency}, {maxLatency}, {throughputMB}, {rps}");
 
             // line to seperate the CPU and Memory stats
             csv.AppendLine();
@@ -178,40 +158,33 @@ namespace Redis_Benchmark
         }
 
 
-        static async Task DoRequests(IDatabase[] db, CancellationToken t)
+        static void DoRequests(IDatabase[] db, CancellationToken t)
         {
-            var calls = new List<Task<(long latency, long requests)>>();
             IDatabase redis;
 
             for (int i = 0; i < parallelOps; i++)
             {
                 redis = db[i % maxConnections];
-                calls.Add(DoCalls(redis, t));
+                DoCalls(redis, t);
             }
-
-            var result = await Task.WhenAll(calls);
-            _totalLatency = result.Sum(tuple => tuple.latency);
-            _totalRequests = result.Sum(tuple => tuple.requests);
         }
 
-        static async Task<(long latency, long requests)> DoCalls(IDatabase redis, CancellationToken t)
+        static void DoCalls(IDatabase redis, CancellationToken t)
         {
+            if (t.IsCancellationRequested) return;
+
             var sw = new Stopwatch();
-            long tLatency = 0;
-            long tRequests = 0;
-
-            while (!t.IsCancellationRequested)
+            sw.Start();
+            redis.StringGetAsync(key).ContinueWith((v) =>
             {
-                sw.Restart();
-                await redis.StringGetAsync(key);
                 var elapsedMS = sw.ElapsedMilliseconds;
+                Interlocked.Increment(ref _totalRequests);
+                Interlocked.Add(ref _totalLatency, elapsedMS);
+                Interlocked.Exchange(ref _minLatency, Math.Min(Interlocked.Read(ref _minLatency), elapsedMS));
+                Interlocked.Exchange(ref _maxLatency, Math.Max(Interlocked.Read(ref _maxLatency), elapsedMS));
 
-                tLatency += elapsedMS;
-                tRequests++;
-                //latencyBag.Add(elapsedMS);
-            }
-            Console.WriteLine("out of loop");
-            return (tLatency, tRequests);
+                DoCalls(redis, t);
+            });
         }
     }
 }
