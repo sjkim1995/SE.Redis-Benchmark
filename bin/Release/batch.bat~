@@ -1,5 +1,0 @@
-start \SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 test.csv false
-start .\SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 test.csv false
-start .\SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 test.csv false
-start .\SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 test.csv false
-start .\SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 test.csv false

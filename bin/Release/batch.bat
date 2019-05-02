@@ -1,5 +1,12 @@
-start \SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 testb.csv false
-start .\SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 testb.csv false
-start .\SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 testb.csv false
-start .\SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 testb.csv false
-start .\SE.Redis-Benchmark.exe 5 p4benchmark.redis.cache.windows.net yfxYyLc2J9NiyBFP0F8yenfFprPfxdhTTLkduqpQPIE= 10000 15 testb.csv false
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true
+start .\SE.Redis-Benchmark.exe 1000 hotfix.redis.cache.windows.net 47eg0x0aUbfmW25jSHETcS8wU47cX2lzFV5hDjUoTbM= 1 10800 test.csv true

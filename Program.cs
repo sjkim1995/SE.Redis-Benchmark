@@ -4,10 +4,10 @@ using System.Threading;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
-using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using StackExchange.Redis;
+using System.Text.RegularExpressions;
 
 namespace Redis_Benchmark
 {
@@ -16,25 +16,30 @@ namespace Redis_Benchmark
         // Globals 
         static DateTime startTime;
         static double trialTimeInSecs;
-        static bool includeAzStats = false;
 
+        // Metrics
         static ConcurrentBag<double> latencyBag;
         static long _totalLatency;
         static long _totalRequests;
         static long _minLatency = long.MaxValue;
         static long _maxLatency = long.MinValue;
+        static StringBuilder _exceptions = new StringBuilder();
+        static long exceptionCt = 0;
 
         // Request details
         static string host;
         static string key;
         static byte[] value;
-        const int keySizeBytes = 1024;
+        const int keySizeBytes = 512;
         static int maxConnections;
         static long parallelOps;
+        static bool includeAzStats;
 
+        // constants
         const int KB = 1024;
         const int MB = KB * KB;
 
+        
         static void PrintTestParams()
         {
             Console.WriteLine("Host:\t\t\t{0}", host);
@@ -48,7 +53,7 @@ namespace Redis_Benchmark
         async static Task MainAsync(string[] args)
         {
             // Increase min thread count
-            ThreadPool.SetMinThreads(200, 200);
+            ThreadPool.SetMinThreads(1000, 1000);
 
             if (args.Length < 6)
             {
@@ -68,6 +73,9 @@ namespace Redis_Benchmark
             if (args.Length == 7)
             {
                 includeAzStats = Boolean.Parse(args[6]);
+            } else
+            {
+                includeAzStats = false;
             }
 
             // Validate arg values
@@ -85,8 +93,7 @@ namespace Redis_Benchmark
                 Ssl = false,
                 Password = password,
                 AbortOnConnectFail = true,
-                SyncTimeout = Int32.MaxValue,
-                IncludeAzStats = includeAzStats,
+                IncludeAzStats = includeAzStats
             };
             config.EndPoints.Add(host);
 
@@ -95,21 +102,21 @@ namespace Redis_Benchmark
             csv.AppendLine("Host, Start Time, Trial Time");
             csv.AppendLine($"{host}, {DateTime.Now}, {trialTimeInSecs}");
             csv.AppendLine();
-            csv.AppendLine("Avg Latency (ms), Min Latency (ms), Max Latency (ms), Throughput (MB/s), RPS"); // Column headers
+            csv.AppendLine("Avg Latency (ms), Min Latency (ms), Max Latency (ms), Throughput (MB/s), RPS, Exceptions, Total Requests, Pass Rate"); // Column headers
 
-            IDatabase[] db = new IDatabase[maxConnections];
+            RedisCM[] cms = new RedisCM[maxConnections];
 
             // Connection Multiplexer
             for (int i = 0; i < maxConnections; i++)
             {
-                db[i] = ConnectionMultiplexer.Connect(config).GetDatabase();
+                cms[i] = new RedisCM(config);
             }
 
             // Set the test key 
             key = "test";
             value = new byte[keySizeBytes];
             (new Random()).NextBytes(value);
-            db[0].StringSet(key, value);
+            cms[0].Connection.GetDatabase().StringSet(key, value);
 
             // Start logging CPU and Memory on a separate thread
             CPUAndMemoryLogger cpuMemLogger = new CPUAndMemoryLogger(logToConsole: true);
@@ -121,70 +128,105 @@ namespace Redis_Benchmark
 
             // Start parallel requests
             var cancel = new CancellationTokenSource();
-            DoRequests(db, cancel.Token);
+            var requestTasks = DoRequests(cms, cancel.Token);
 
             await Task.Delay(TimeSpan.FromSeconds(trialTimeInSecs));
 
             // Stop threads from making further calls
             cancel.Cancel();
 
+            // Finish remaining calls
+            await requestTasks;
+
             // Stop logging CPU and memory usage
             cpuMemLogger.Dispose();
-            double elapsed = (DateTime.Now - startTime).TotalSeconds;
-            double avgLatency = Math.Round((double) _totalLatency / _totalRequests, 2);
+
+            long totalRequests = Interlocked.Read(ref _totalRequests);
+            long totalLatency = Interlocked.Read(ref _totalLatency);
             long minLatency = Interlocked.Read(ref _minLatency);
             long maxLatency = Interlocked.Read(ref _maxLatency);
 
-            // Throughput Metrics
-            double throughputMB = Math.Round((_totalRequests * keySizeBytes) / elapsed / MB, 2);
-            double rps = Math.Round(_totalRequests / elapsed, 2);
+            double elapsed = (DateTime.Now - startTime).TotalSeconds;
+            double avgLatency = Math.Round((double) totalLatency / totalRequests, 2);
 
+            double throughputMB = Math.Round((totalRequests * keySizeBytes) / elapsed / MB, 2);
+            double rps = Math.Round(totalRequests / elapsed, 2);
+            double passRate = Math.Round((double) 100 * (1-(exceptionCt/totalRequests)), 2);
+
+            // Print Metrics
             Console.WriteLine("Average Latency: {0} ms", avgLatency);
             Console.WriteLine("Min Latency: {0} ms", minLatency);
             Console.WriteLine("Max Latency: {0} ms", maxLatency);
             Console.WriteLine("Throughput: {0} MB/s", throughputMB);
             Console.WriteLine("RPS: {0}\n", rps);
+            Console.WriteLine("Exceptions: {0}", exceptionCt);
+            Console.WriteLine("Pass rate: {0}%\n", passRate);
 
-            csv.AppendLine($"{avgLatency}, {minLatency}, {maxLatency}, {throughputMB}, {rps}");
+            csv.AppendLine($"{avgLatency}, {minLatency}, {maxLatency}, {throughputMB}, {rps}, {exceptionCt}, {totalRequests}, {passRate}%");
 
             // line to seperate the CPU and Memory stats
             csv.AppendLine();
             csv.AppendLine(cpuMemLogger.GetCSV());
 
-            // Write results to csv
+            // Write metrics to csv
             File.WriteAllText(outputFileName, csv.ToString());
+
+            // Write exception log
+            string exceptionOutputFileName = Path.GetFileNameWithoutExtension(outputFileName) + "_logs.txt";
+            File.WriteAllText(exceptionOutputFileName, _exceptions.ToString());
 
             return;
         }
 
 
-        static void DoRequests(IDatabase[] db, CancellationToken t)
+        static async Task DoRequests(RedisCM[] cms, CancellationToken t)
         {
-            IDatabase redis;
+            RedisCM cm;
+            var calls = new List<Task>();
 
             for (int i = 0; i < parallelOps; i++)
             {
-                redis = db[i % maxConnections];
-                DoCalls(redis, t);
+                cm = cms[i % maxConnections];
+                calls.Add(DoCalls(cm, t));
             }
+
+            await Task.WhenAll(calls);
         }
 
-        static void DoCalls(IDatabase redis, CancellationToken t)
+        static async Task DoCalls(RedisCM cm, CancellationToken t)
         {
-            if (t.IsCancellationRequested) return;
+            // per-thread counters
+            long tRequests = 0;
+            long tLatency = 0;
 
-            var sw = new Stopwatch();
-            sw.Start();
-            redis.StringGetAsync(key).ContinueWith((v) =>
-            {
-                var elapsedMS = sw.ElapsedMilliseconds;
-                Interlocked.Increment(ref _totalRequests);
-                Interlocked.Add(ref _totalLatency, elapsedMS);
-                Interlocked.Exchange(ref _minLatency, Math.Min(Interlocked.Read(ref _minLatency), elapsedMS));
-                Interlocked.Exchange(ref _maxLatency, Math.Max(Interlocked.Read(ref _maxLatency), elapsedMS));
+            IDatabase redis = cm.Connection.GetDatabase();
 
-                DoCalls(redis, t);
-            });
+            while (!t.IsCancellationRequested)
+            { 
+                await Task.Delay(1000);
+
+                try {
+                    tRequests++;
+                    var sw = new Stopwatch();
+                    sw.Start();
+                    await redis.StringGetAsync(key);
+                    var elapsedMS = sw.ElapsedMilliseconds;
+                    tLatency += elapsedMS;
+
+                    Interlocked.Exchange(ref _minLatency, Math.Min(Interlocked.Read(ref _minLatency), elapsedMS));
+                    Interlocked.Exchange(ref _maxLatency, Math.Max(Interlocked.Read(ref _maxLatency), elapsedMS));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(String.Format("\n{0}", ex));
+                    _exceptions.Append(String.Format("[{0}] {1}\n", DateTime.Now, ex.Message));
+                    _exceptions.AppendLine();
+                    Interlocked.Increment(ref exceptionCt);
+
+                }
+            }
+            Interlocked.Add(ref _totalRequests, tRequests);
+            Interlocked.Add(ref _totalLatency, tLatency);
         }
     }
 }
